@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # Dịch vụ Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: task_manager_db
+    restart: always
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: task_manager_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Dịch vụ quản lý DB giao diện web (Adminer) - Để anh soi DB dễ hơn
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - '8080:8080'
+
+volumes:
+  postgres_data:

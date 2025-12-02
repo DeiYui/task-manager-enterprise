@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2016",             /* Phiên bản JS đích */
+    "module": "commonjs",           /* Node.js dùng CommonJS */
+    "rootDir": "./src",             /* Code anh viết nằm ở đây */
+    "outDir": "./dist",             /* Code biên dịch ra nằm ở đây */
+    "esModuleInterop": true,        /* Để import express dể dàng */
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,                 /* Chế độ nghiêm ngặt (BẮT BUỘC) */
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}

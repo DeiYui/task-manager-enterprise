@@ -1,0 +1,88 @@
+// ANH CẦN CHẠY LẠI MIGRATION SAU KHI DÁN CODE NÀY
+
+// 1. Cấu hình Client (Không đổi)
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 2. Cấu hình Database (Không đổi)
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 3. ĐỊNH NGHĨA ENUM (Danh sách cố định)
+enum Role {
+  USER
+  ADMIN
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+// 4. MODEL USER (Đã có 3 mối quan hệ ngược)
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Mối quan hệ ngược:
+  projectsCreated Project[] @relation("ProjectOwner") // 1. Projects mà User này sở hữu
+  tasksAssigned   Task[]    @relation("TaskAssignee")  // 2. Tasks mà User này được giao
+  tasksCreated    Task[]    @relation("TaskCreator")  // 3. Tasks mà User này tạo ra
+
+  @@map("users")
+}
+
+
+// 5. MODEL PROJECT (Có khóa ngoại trỏ về User)
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+
+  // QUAN HỆ 1: Khóa ngoại: Ai là chủ sở hữu Project này
+  ownerId     Int
+  owner       User     @relation("ProjectOwner", fields: [ownerId], references: [id])
+
+  // Mối quan hệ ngược: Project này có nhiều Task
+  tasks       Task[]   
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("projects")
+}
+
+
+// 6. MODEL TASK (Khóa ngoại trỏ về Project và User)
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+
+  // QUAN HỆ 1: Trỏ về Project
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id])
+
+  // QUAN HỆ 2: Ai là người được giao việc
+  assigneeId  Int
+  assignee    User     @relation("TaskAssignee", fields: [assigneeId], references: [id])
+
+  // QUAN HỆ 3: Ai là người tạo ra Task
+  creatorId   Int
+  creator     User     @relation("TaskCreator", fields: [creatorId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("tasks")
+}
