@@ -15,7 +15,8 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], // Cho phép Frontend
+    origin: ['http://localhost:5173', 'http://127.0.0.1:5173','https://task-manager-enterprise-p2uga2iko-deiyuis-projects.vercel.app',
+        'https://task-manager-enterprise.vercel.app'], // Cho phép các nguồn này truy cập
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], // Các method được dùng
     credentials: true // Cho phép gửi cookie/header xác thực
 }));
