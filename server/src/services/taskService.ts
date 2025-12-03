@@ -9,6 +9,7 @@ interface CreateTaskData {
     projectId: number;
     assigneeId: number;
     creatorId: number;
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH';
 }
 
 // Interface cho bộ lọc (Mới)
@@ -26,10 +27,20 @@ export const createTask = async (data: CreateTaskData) => {
         data: {
             title: data.title,
             description: data.description,
-            status: 'TODO',
+            status: 'TODO', // Mặc định khi mới tạo là TODO
+            priority: data.priority || 'MEDIUM', // Nếu thiếu thì mặc định là MEDIUM
+            
+            // Kết nối quan hệ
             project: { connect: { id: data.projectId } },
             assignee: { connect: { id: data.assigneeId } },
             creator: { connect: { id: data.creatorId } }
+        },
+        // 🔥 QUAN TRỌNG: Trả về luôn thông tin người được giao
+        // Để Frontend hiển thị tên ngay lập tức mà không cần F5
+        include: {
+            assignee: {
+                select: { id: true, name: true, email: true }
+            }
         }
     });
 };
@@ -71,4 +82,15 @@ export const getTasksByProject = async (filter: GetTaskFilter) => {
     });
 
     return { tasks, total, page, limit, totalPages: Math.ceil(total / limit) };
+};
+
+// Thêm hàm này
+export const updateTask = async (taskId: number, updates: any) => {
+    return await prisma.task.update({
+        where: { id: taskId },
+        data: updates,
+        include: {
+             assignee: { select: { id: true, name: true, email: true } }
+        }
+    });
 };

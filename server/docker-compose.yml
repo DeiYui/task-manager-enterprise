@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # Dịch vụ Database
+  # 1. Dịch vụ Database (Giữ nguyên của anh)
   postgres:
     image: postgres:15-alpine
     container_name: task_manager_db
@@ -9,18 +9,37 @@ services:
     ports:
       - '5432:5432'
     environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: task_manager_db
+      POSTGRES_USER: myuser         # 👈 User cũ của anh
+      POSTGRES_PASSWORD: mypassword # 👈 Pass cũ của anh
+      POSTGRES_DB: task_manager_db  # 👈 Tên DB cũ
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # Dịch vụ quản lý DB giao diện web (Adminer) - Để anh soi DB dễ hơn
+  # 2. Adminer (Giữ nguyên)
   adminer:
     image: adminer
     restart: always
     ports:
       - '8080:8080'
+
+  # 3. Backend API (🔥 THÊM MỚI - "Ngôi sao" của chúng ta)
+  api:
+    build: .                        # Build từ Dockerfile ở thư mục hiện tại
+    container_name: task_manager_api
+    restart: always
+    ports:
+      - "3000:3000"                 # Mở cổng 3000 ra máy ngoài
+    depends_on:
+      - postgres                    # Bắt buộc chờ ông Database chạy trước
+    env_file:
+      - .env                        # Đọc các biến khác (JWT_SECRET...) từ file .env
+    environment:
+      # 🔥 QUAN TRỌNG NHẤT: Ghi đè DATABASE_URL
+      # Trong thế giới Docker:
+      # - "localhost" là chính cái hộp API này -> Sai.
+      # - Muốn gọi Database, phải gọi tên service là "postgres".
+      # - Credential phải khớp với phần environment của service postgres ở trên.
+      - DATABASE_URL=postgresql://myuser:mypassword@postgres:5432/task_manager_db?schema=public
 
 volumes:
   postgres_data:
