@@ -7,7 +7,7 @@ const axiosClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
-
+console.log("🔗 API URL đang dùng:", import.meta.env.VITE_API_URL);
 // 2. Interceptor cho REQUEST (Gửi đi)
 // Tự động chèn Token vào mỗi lần gọi API
 axiosClient.interceptors.request.use(
