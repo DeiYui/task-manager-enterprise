@@ -84,13 +84,20 @@ export const getTasksByProject = async (filter: GetTaskFilter) => {
     return { tasks, total, page, limit, totalPages: Math.ceil(total / limit) };
 };
 
-// Thêm hàm này
+// Cập nhật Task (Title, Desc, Status, Priority, Assignee...)
 export const updateTask = async (taskId: number, updates: any) => {
     return await prisma.task.update({
         where: { id: taskId },
-        data: updates,
+        data: updates, 
         include: {
              assignee: { select: { id: true, name: true, email: true } }
         }
+    });
+};
+
+// Xóa Task (MỚI)
+export const deleteTask = async (taskId: number) => {
+    return await prisma.task.delete({
+        where: { id: taskId }
     });
 };

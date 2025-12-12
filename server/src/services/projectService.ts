@@ -7,11 +7,7 @@ export const createProject = async (userId: number, data: { name: string; descri
         data: {
             name: data.name,
             description: data.description,
-            // CÁCH 1: Gán trực tiếp khóa ngoại (Foreign Key)
             ownerId: userId 
-            
-            // CÁCH 2: Dùng connect (Prisma style) - Chọn 1 trong 2 đều được
-            // owner: { connect: { id: userId } }
         }
     });
 };
@@ -25,21 +21,9 @@ export const getProjectsByUser = async (userId: number) => {
         include: {
             // Join bảng: Lấy thêm thông tin của User sở hữu (để hiển thị tên chủ dự án chẳng hạn)
             owner: {
-                select: { id: true, name: true, email: true } // Chỉ lấy thông tin cần thiết, giấu password đi
+                select: { id: true, name: true, email: true } 
             } 
         }
-    });
-};
-
-// Hàm xóa project
-export const deleteProject = async (projectId: number) => {
-    // Kiểm tra xem project có tồn tại không trước
-    const project = await prisma.project.findUnique({ where: { id: projectId } });
-    if (!project) return null;
-
-    // Xóa nó
-    return await prisma.project.delete({
-        where: { id: projectId }
     });
 };
 
@@ -56,5 +40,26 @@ export const getProjectById = async (projectId: number, userId: number) => {
                 select: { id: true, name: true, email: true }
             }
         }
+    });
+};
+
+// Cập nhật Dự án
+export const updateProject = async (id: number, data: any) => {
+    return await prisma.project.update({
+        where: { id },
+        data, // Chỉ update những trường gửi lên (VD: name, description)
+    });
+};
+
+// Xóa Dự án (Kèm xóa sạch Task bên trong - Clean up)
+export const deleteProject = async (id: number) => {
+    // 1. Xóa tất cả task của dự án này trước
+    await prisma.task.deleteMany({
+        where: { projectId: id }
+    });
+
+    // 2. Sau đó mới xóa dự án
+    return await prisma.project.delete({
+        where: { id }
     });
 };

@@ -26,20 +26,6 @@ export const getMyProjects = catchAsync(async (req: Request, res: Response, next
     });
 });
 
-export const deleteProject = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const projectId = Number(req.params.id); // Lấy ID từ URL (vd: /projects/1)
-
-    const result = await projectService.deleteProject(projectId);
-
-    if (!result) {
-        return next(new appError("Không tìm thấy Project với ID này", 404));
-    }
-
-    res.status(200).json({
-        status: 'success',
-        message: 'Đã xóa project thành công (Quyền lực của Admin)'
-    });
-});
 
 export const getProjectById = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const projectId = Number(req.params.id);
@@ -56,4 +42,14 @@ export const getProjectById = catchAsync(async (req: Request, res: Response, nex
         status: 'success',
         data: project
     });
+});
+
+export const updateProject = catchAsync(async (req: Request, res: Response) => {
+    const project = await projectService.updateProject(Number(req.params.id), req.body);
+    res.status(200).json({ status: 'success', data: project });
+});
+
+export const deleteProject = catchAsync(async (req: Request, res: Response) => {
+    await projectService.deleteProject(Number(req.params.id));
+    res.status(200).json({ status: 'success', message: 'Project deleted' });
 });

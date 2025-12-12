@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Table, Tag, Button, Space, Card, Typography, Modal, Form, Input, message } from 'antd';
-import { PlusOutlined, FolderOpenOutlined } from '@ant-design/icons';
+import { Table, Tag, Button, Space, Card, Typography, Modal, Form, Input, message, Popconfirm } from 'antd';
+import { PlusOutlined, FolderOpenOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import projectApi from '../api/projectApi';
 import type { Project } from '../types';
@@ -12,37 +12,70 @@ const { TextArea } = Input;
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [form] = Form.useForm(); // Hook để điều khiển Form
-  const queryClient = useQueryClient(); // Để tương tác với Cache
+  const [editingProject, setEditingProject] = useState<Project | null>(null); // 👇 State lưu dự án đang sửa
+  const [form] = Form.useForm();
+  const queryClient = useQueryClient();
 
-  // 1. Gọi API lấy danh sách Project (Query)
+  // 1. Lấy danh sách Project
   const { data, isLoading, error } = useQuery({
     queryKey: ['projects'],
     queryFn: projectApi.getAll,
   });
 
-  // 2. Setup API tạo mới (Mutation)
-  const createMutation = useMutation({
-    mutationFn: projectApi.create,
+  // 2. Mutation: Tạo hoặc Cập nhật
+  const saveMutation = useMutation({
+    mutationFn: (values: any) => {
+      if (editingProject) {
+        // Nếu đang sửa -> Gọi API Update
+        return projectApi.update(editingProject.id, values);
+      }
+      // Nếu không -> Gọi API Create
+      return projectApi.create(values);
+    },
     onSuccess: () => {
-      // Khi tạo thành công:
-      message.success('Tạo dự án mới thành công!');
-      setIsModalOpen(false); // Đóng Modal
-      form.resetFields(); // Xóa dữ liệu cũ trong Form
-      // 🔥 Kích hoạt lệnh: "Lấy lại danh sách projects ngay lập tức!"
+      message.success(editingProject ? 'Cập nhật thành công!' : 'Tạo dự án mới thành công!');
+      handleCancel(); // Đóng modal & reset form
       queryClient.invalidateQueries({ queryKey: ['projects'] });
     },
     onError: (err: any) => {
-      message.error(err.response?.data?.message || 'Lỗi khi tạo dự án');
+      message.error(err.response?.data?.message || 'Có lỗi xảy ra');
     },
   });
 
-  // Hàm xử lý khi bấm OK trên Modal
-  const handleCreate = (values: any) => {
-    createMutation.mutate(values);
+  // 3. Mutation: Xóa
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => projectApi.delete(id),
+    onSuccess: () => {
+      message.success('Đã xóa dự án!');
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    },
+    onError: () => message.error('Không thể xóa dự án này'),
+  });
+
+  // --- CÁC HÀM XỬ LÝ (HANDLERS) ---
+
+  const handleOpenCreate = () => {
+    setEditingProject(null); // Chế độ tạo mới
+    form.resetFields();
+    setIsModalOpen(true);
   };
 
-  // Cấu hình bảng
+  const handleOpenEdit = (project: Project) => {
+    setEditingProject(project); // Chế độ sửa
+    form.setFieldsValue({ // 👇 Điền dữ liệu cũ vào form
+      name: project.name,
+      description: project.description
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    setEditingProject(null);
+    form.resetFields();
+  };
+
+  // --- CẤU HÌNH CỘT ---
   const columns = [
     {
       title: 'Tên Dự Án',
@@ -74,15 +107,37 @@ const DashboardPage: React.FC = () => {
       title: 'Hành động',
       key: 'action',
       render: (_: any, record: Project) => (
-        <Space size="middle">
-        <Button 
-        type="text" 
-        icon={<FolderOpenOutlined />}
-        // 👇 THÊM SỰ KIỆN NÀY
-        onClick={() => navigate(`/projects/${record.id}`)}
-      >
-        Chi tiết
-      </Button>
+        <Space size="small">
+          {/* Nút Chi Tiết */}
+          <Button 
+            type="text" 
+            icon={<FolderOpenOutlined />}
+            onClick={() => navigate(`/projects/${record.id}`)}
+          >
+            Chi tiết
+          </Button>
+
+          {/* 👇 Nút Sửa */}
+          <Button 
+            type="text" 
+            icon={<EditOutlined />} 
+            style={{ color: '#faad14' }} // Màu vàng cam
+            onClick={() => handleOpenEdit(record)}
+          >
+            Sửa
+          </Button>
+
+          {/* 👇 Nút Xóa (Có Confirm) */}
+          <Popconfirm
+            title="Xóa dự án này?"
+            description="Toàn bộ công việc bên trong sẽ bị xóa theo!"
+            onConfirm={() => deleteMutation.mutate(record.id)}
+            okText="Xóa luôn"
+            cancelText="Hủy"
+            okButtonProps={{ danger: true }}
+          >
+            <Button danger type="text" icon={<DeleteOutlined />}>Xóa</Button>
+          </Popconfirm>
         </Space>
       ),
     },
@@ -101,14 +156,14 @@ const DashboardPage: React.FC = () => {
             type="primary" 
             icon={<PlusOutlined />} 
             size="large"
-            onClick={() => setIsModalOpen(true)} // Mở Modal
+            onClick={handleOpenCreate} // Gọi hàm mở tạo mới
         >
           Tạo Dự Án Mới
         </Button>
       </div>
 
       {/* Table */}
-      <Card loading={isLoading} bordered={false} style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+      <Card loading={isLoading} bordered={false} styles={{ body: { padding: 0 } }} style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
         <Table 
             columns={columns} 
             dataSource={projects} 
@@ -117,17 +172,18 @@ const DashboardPage: React.FC = () => {
         />
       </Card>
 
-      {/* Modal Form Tạo Mới */}
+      {/* Modal Form (Dùng chung cho Tạo & Sửa) */}
       <Modal
-        title="Khởi tạo Dự Án Mới"
+        title={editingProject ? "Cập Nhật Dự Án" : "Khởi tạo Dự Án Mới"}
         open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
-        footer={null} // Ẩn nút mặc định để dùng nút của Form
+        onCancel={handleCancel}
+        footer={null}
+        destroyOnClose
       >
         <Form
             form={form}
             layout="vertical"
-            onFinish={handleCreate}
+            onFinish={(values) => saveMutation.mutate(values)} // Gọi mutation chung
             style={{ marginTop: 20 }}
         >
             <Form.Item
@@ -146,11 +202,11 @@ const DashboardPage: React.FC = () => {
             </Form.Item>
 
             <Form.Item style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 0 }}>
-                <Button onClick={() => setIsModalOpen(false)} style={{ marginRight: 8 }}>
+                <Button onClick={handleCancel} style={{ marginRight: 8 }}>
                     Hủy
                 </Button>
-                <Button type="primary" htmlType="submit" loading={createMutation.isPending}>
-                    Tạo Dự Án
+                <Button type="primary" htmlType="submit" loading={saveMutation.isPending}>
+                    {editingProject ? 'Lưu Thay Đổi' : 'Tạo Dự Án'}
                 </Button>
             </Form.Item>
         </Form>

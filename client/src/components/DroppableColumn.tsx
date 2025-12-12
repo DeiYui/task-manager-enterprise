@@ -28,8 +28,8 @@ const DroppableColumn: React.FC<Props> = ({ id, title, count, bgColor, children 
     <Card 
         title={`${title} (${count})`} 
         variant="borderless" 
-        style={{ background: 'transparent' }} // Card trong suốt để div bao ngoài lo background
-        bodyStyle={{ padding: 0 }}
+        style={{ background: 'transparent' }} 
+        styles={{ body: { padding: 0 } }}
     >
         <div ref={setNodeRef} style={style}>
             {children}

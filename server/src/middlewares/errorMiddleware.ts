@@ -9,7 +9,7 @@ export const globalErrorHandler = (err: appError, req: Request, res: Response, n
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
 
-    console.error('🔥 ERROR LOG:', err); // Sau này thay bằng Winston
+    console.error('🔥 ERROR LOG:', err); 
 
     res.status(err.statusCode).json({
         status: err.status,

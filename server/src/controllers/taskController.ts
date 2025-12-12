@@ -66,14 +66,16 @@ export const getProjectTasks = catchAsync(async (req: Request, res: Response, ne
     });
 });
 
+
 export const updateTask = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const taskId = Number(req.params.id);
-    const updates = req.body; // { status: 'DONE', ... }
-
+    const updates = req.body; 
     const updatedTask = await taskService.updateTask(taskId, updates);
+    res.status(200).json({ status: 'success', data: updatedTask });
+});
 
-    res.status(200).json({
-        status: 'success',
-        data: updatedTask
-    });
+export const deleteTask = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const taskId = Number(req.params.id);
+    await taskService.deleteTask(taskId);
+    res.status(200).json({ status: 'success', message: 'Task deleted successfully' });
 });
