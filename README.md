@@ -11,13 +11,6 @@
 > **A comprehensive, enterprise-grade Project Management System inspired by Jira & Trello.**
 > Built with modern technologies to demonstrate Fullstack capabilities, System Design, and Clean Code architecture.
 
----
-
-## 📸 Demo Preview
-
-![Dashboard Demo](https://via.placeholder.com/800x400?text=Please+Add+Your+Demo+GIF+Here)
-
----
 
 ## ✨ Key Features
 
@@ -55,117 +48,7 @@
 * **Backend:** Deployed on **Render** (Auto-deploy via CI/CD).
 * **Containerization:** Docker & Docker Compose (Ready for local dev).
 
----
-
-## 🏗️ System Architecture
-
-```mermaid
-graph TD
-    User[User / Client] -->|HTTPS| FE[Frontend (React + Vite)]
-    FE -->|REST API| BE[Backend (Express + Node.js)]
-    BE -->|Query| ORM[Prisma ORM]
-    ORM -->|SQL| DB[(PostgreSQL Database)]
-    
-    subgraph "Backend Services"
-        AuthService[Auth Service]
-        ProjectService[Project Service]
-        TaskService[Task Service]
-    end
-    
-    BE --> AuthService
-    BE --> ProjectService
-    BE --> TaskService
-💾 Database Schema
-Simple yet scalable relational design:
-
-Đoạn mã
-
-erDiagram
-    User ||--o{ Project : owns
-    User ||--o{ Task : assigned_to
-    Project ||--o{ Task : contains
-
-    User {
-        int id
-        string email
-        string password
-        string name
-        enum role
-    }
-    Project {
-        int id
-        string name
-        string description
-        int ownerId
-    }
-    Task {
-        int id
-        string title
-        string status
-        string priority
-        int projectId
-        int assigneeId
-    }
-🚀 Getting Started
-Prerequisites
-Node.js (v18+)
-
-PostgreSQL (Local or Cloud URL)
-
-Git
-
-1. Clone the repository
-Bash
-
-git clone [https://github.com/DeiYui/task-manager-enterprise.git](https://github.com/DeiYui/task-manager-enterprise.git)
-cd task-manager-enterprise
-2. Backend Setup
-Bash
-
-cd server
-npm install
-
-# Create .env file
-# DATABASE_URL="postgresql://user:pass@localhost:5432/mydb"
-# JWT_SECRET="your_secret_key"
-
-# Run migrations
-npx prisma migrate dev --name init
-
-# Start Server
-npm run dev
-3. Frontend Setup
-Bash
-
-cd client
-npm install
-
-# Create .env file
-# VITE_API_URL="http://localhost:3000"
-
-# Start Client
-npm run dev
-🛣️ Roadmap
-[x] Basic CRUD for Projects & Tasks.
-
-[x] Kanban Board (Drag & Drop).
-
-[x] Authentication System.
-
-[ ] Project Members: Invite others to join projects.
-
-[ ] Comments System: Discuss on tasks.
-
-[ ] Dashboard Analytics: Charts & Statistics.
-
-[ ] Dark Mode.
-
-👨‍💻 Author
-DeiYui
-
-Fullstack Developer
-
-GitHub Profile
 
 This project is part of a Fullstack Training Journey.
+
 
